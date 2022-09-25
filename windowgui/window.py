@@ -1,4 +1,4 @@
-import pygame
+import pygame, sys
 from .util import Colors
 from .flash import FlashManager
 from .ui import UIManager
@@ -50,6 +50,7 @@ class Window:
             if self._has_callable_attr(manager, "end"):
                 manager.end()
         pygame.quit()
+        sys.exit()
 
     def eventloop(self, event):
         for manager in self._managers:

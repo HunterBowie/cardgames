@@ -1,16 +1,9 @@
-import assets
-import windowgui
+import pygame
+import constants
+import windowgui, solitaire, blackjack
 
-window = windowgui.Window((500, 500))
+window = windowgui.Window(constants.SCREEN_SIZE)
+pygame.display.set_caption("Card Games")
 
-class Manager:
-    def __init__(self, window):
-        pass
-    def update(self):
-        x = 0
-        for card in assets.cards:
-            window.screen.blit(card["image"], (x, 100))
-            x += 30
-        print("updating")
-window.set_manager(Manager)
+window.set_manager(blackjack.Game)
 window.start(auto_cycle=True)
