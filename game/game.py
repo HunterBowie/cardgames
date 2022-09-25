@@ -1,8 +1,8 @@
-import random
+import random, time
 import pygame
 import assets, constants, windowgui
-import solitaire.rules as rules
-from pile import Pile
+import game.rules as rules
+from game.pile import Pile
 
 class Game:
     def __init__(self, window):
@@ -20,6 +20,10 @@ class Game:
         self.hand = Pile(0, 0, renders_vertically=True)
         self.picked_pile = None
         self._init_cards()
+        self.animation_running = False
+        self.animation_piles = [self.waste, self.stock] + self.tableau
+        self.animation_timer = windowgui.Timer()
+        self.animation_timer.start()
  
     def _init_cards(self):
         cards = assets.cards.copy()
@@ -32,28 +36,64 @@ class Game:
                 tableau.cards.append(card)
         self.stock.cards = cards
     
-    def update(self):
-        mouse_pos = pygame.mouse.get_pos()
-        for pile in self.piles:
-            pile.render(self.window.screen)
-        
-        if self.hand.cards:
-            self.hand.rect.center = mouse_pos
-            self.hand.render(self.window.screen)
+    
+    def _step_animation(self):
+        while True:
+            pile = random.choice(self.animation_piles)
+            while not pile.cards:
+                self.animation_piles.remove(pile)
+                pile = random.choice(self.animation_piles)
+            card = pile.cards[-1]
+            if pile.label == "waste" or pile.label == "stock":
+                card = random.choice(pile.cards)
 
-        for card in [card for tableau in self.tableau for card in tableau.cards]:
-            if card["flipped"]:
-                break   
+            for foundation in self.foundations:
+                if card["suit"] == foundation.label[11:]:
+                    if not foundation.cards:
+                        if card["power"] == 1:
+                            foundation.cards.append(card)
+                            pile.cards.remove(card)
+                            return 
+                    elif foundation.cards[-1]["power"] == card["power"] - 1:
+                        foundation.cards.append(card)
+                        pile.cards.remove(card)
+                        return
+            
+    def update(self):
+        if self.animation_running:
+            if len(self.foundations[0].cards) == len(self.foundations[1].cards) \
+                == len(self.foundations[2].cards) == len(self.foundations[3].cards) == 13:
+                time.sleep(2)
+                self.window.end()
+
+            if self.animation_timer.passed(.5):
+                self.animation_timer.start()
+                self._step_animation()
+
+            for pile in self.piles:
+                pile.render(self.window.screen)
+                  
         else:
-            pass # player has won
+            for pile in self.piles:
+                pile.render(self.window.screen)
+                
+            mouse_pos = pygame.mouse.get_pos()
+            if self.hand.cards:
+                self.hand.rect.center = mouse_pos
+                self.hand.render(self.window.screen)
+
+            for card in [card for tableau in self.tableau for card in tableau.cards]:
+                if card["flipped"]:
+                    break   
+            else:
+                self.animation_running = True
+
         
-        for foundation in self.foundations:
-            if len(foundation.cards) < 13:
-                break
-        else:
-            self.window.end()
+        
             
     def eventloop(self, event):
+        if self.animation_running:
+            return
         mouse_pos = pygame.mouse.get_pos()
         if event.type == pygame.MOUSEBUTTONDOWN:
             for pile in self.piles:

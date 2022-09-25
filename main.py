@@ -1,9 +1,9 @@
 import pygame
 import constants
-import windowgui, solitaire, blackjack
+import windowgui, game
 
 window = windowgui.Window(constants.SCREEN_SIZE)
-pygame.display.set_caption("Card Games")
+pygame.display.set_caption("Solitaire")
 
-window.set_manager(blackjack.Game)
+window.set_manager(game.Game)
 window.start(auto_cycle=True)

@@ -2,12 +2,15 @@ import pygame
 import constants, windowgui, assets
 
 class Pile:
-    def __init__(self, x, y, label="", top_image=None, renders_vertically=False):
-        self.cards = []
+    def __init__(self, x, y, label="", cards=None, top_image=None, renders_vertically=False):
+        self.cards = cards
+        if cards is None:
+            self.cards = []
         self.top_image = top_image
         self.label = label
         self.renders_vertically = renders_vertically
         self.rect = pygame.Rect(x, y, constants.CARD_WIDTH, constants.CARD_WIDTH)
+    
     
     def get_card_rects(self):
         card_rects = []
